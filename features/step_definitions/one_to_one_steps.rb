@@ -1,4 +1,5 @@
 Given /^a parent model class and instance$/ do
+  CreateParents.migrate(:up)
   Parent = Class.new(ActiveRecord::Base) do
     has_one :child
   end
