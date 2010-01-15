@@ -8,6 +8,9 @@ module OneToOne
         def belongs_to(parent_name)
           set_table_name(parent_name.to_s.pluralize)
           original_belongs_to(parent_name)
+#          class << self
+#            private :belongs_to
+#          end
         end
       end
       validates_presence_of :parent

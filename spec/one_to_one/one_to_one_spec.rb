@@ -63,12 +63,17 @@ describe OneToOne do
       child.errors.should_not be_empty
       child.errors.on('parent').should =~ /can't be blank/
     end
-    it 'should use the class names in the error message' do
+    it 'should allow the error message to be overridden' do
       pending
     end
     
     it 'should raise an error if another belongs_to association is declared' do
-      pending
+      Child.class_eval do
+        include OneToOne
+        belongs_to(:parent)
+        belongs_to(:a_different_class)
+      end
+#      .should 
     end
   end
   
