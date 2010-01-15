@@ -11,8 +11,9 @@ ActiveRecord::Base.establish_connection(
 
 class CreateParents < ActiveRecord::Migration
   def self.up
-    create_table :parents do |t|
-     
+    create_table :parents do |t|     
+      t.boolean :must_be_true, :default => true, :nil => true
+      t.string :child__name
     end
   end
   def self.down
