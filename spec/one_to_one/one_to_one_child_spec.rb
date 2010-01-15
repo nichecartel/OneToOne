@@ -1,14 +1,13 @@
 require 'spec_helper'
 
-CreateParents.migrate(:up)
-at_exit { CreateParents.migrate(:down) }
-
 describe OneToOne do
   context 'when included in the Child class' do
-    before(:each) do
-      Parent = Class.new(ActiveRecord::Base) do
-      end
-      Child = Class.new(ActiveRecord::Base) do
+    before(:each) do      
+      silence_warnings do
+        Parent = Class.new(ActiveRecord::Base) do
+        end
+        Child = Class.new(ActiveRecord::Base) do
+        end
       end
     end
     
@@ -21,7 +20,6 @@ describe OneToOne do
           def set_table_name(table_name)
           end
           def method_missing(method, *args, &block)
-            puts 'method skipped'
           end
         end
       end
@@ -60,7 +58,7 @@ describe OneToOne do
       child = Child.new
       child.attributes[:child__name].should == nil
       child.attributes = {:name => 'David'}
-      child.attributes.should == {'child__name' => 'David'}
+      child.attributes['child__name'].should == 'David'
     end
     it "should alias attributes for the child instance which begin with 'child__' when the object is created with them" do
       Child.class_eval do
@@ -68,7 +66,7 @@ describe OneToOne do
         belongs_to(:parent)
       end
       child = Child.new({:name => 'David'})
-      child.attributes.should == {'child__name' => 'David'}
+      child.attributes['child__name'].should == 'David'
     end
     
     it 'should display the Child class nicely with the aliased attributes' do
@@ -269,7 +267,6 @@ describe OneToOne do
           child.errors.on('parent').grep(/cannot be changed to another/).should_not be_empty
         end
         it 'should save the child in the parents table if Child#save is called' do
-          pending
           Child.class_eval do
             include OneToOne
             belongs_to(:parent)
@@ -277,38 +274,59 @@ describe OneToOne do
           child = Child.new
           child.parent = Parent.new
           child.save
-          Child.find(1).should == child
+          child.name = 'David'
+          child.save
+          Child.find(1).name.should == 'David'
         end
         it 'should save the child in the parents table if Child#save! is called' do
-          pending
           Child.class_eval do
             include OneToOne
             belongs_to(:parent)
           end
           child = Child.new
           child.parent = Parent.new
+          child.save
+          child.name = 'David'
           child.save!
-          Child.find(1).should == child
+          Child.find(1).name.should == 'David'
         end
-        it 'should save the child in the parents table if Child#create is called' do
+        it 'should save the child in the parents table if Child#update_attributes is called' do
+          Child.class_eval do
+            include OneToOne
+            belongs_to(:parent)
+          end
+          child = Child.create(:parent => Parent.new)
+          child.update_attributes({:name => 'David'})
+          Child.find(1).name.should == 'David'
+        end
+        it 'should save the child in the parents table if Child#update_attributes! is called' do
+          Child.class_eval do
+            include OneToOne
+            belongs_to(:parent)
+          end
+          child = Child.create(:parent => Parent.new)
+          child.update_attributes!({:name => 'David'})
+          Child.find(1).name.should == 'David'
+        end
+        it 'should save the child in the parents table if Child.update is called' do
           pending
           Child.class_eval do
             include OneToOne
             belongs_to(:parent)
           end
           child = Child.create(:parent => Parent.new)
-          Child.find(1).should == child
+          Child.update(child.id, :name => 'David')
+          Child.find(1).name.should == 'David'
         end
-        it 'should save the child in the parents table if Child#create! is called' do
-          pending
+        it 'should not allow the parent attributes to be updated' do
           Child.class_eval do
             include OneToOne
             belongs_to(:parent)
           end
-          child = Child.new
-          child.parent = Parent.new
-          child = Child.create!(:parent => Parent.new)
-          Child.find(1).should == child
+          child = Child.create(:parent => Parent.new)
+          lambda do
+            child.update_attributes({:parent_name => 'David'})
+          end.should raise_error(ActiveRecord::UnknownAttributeError)
         end
       end
       
@@ -320,57 +338,25 @@ describe OneToOne do
             validates_acceptance_of :must_be_true, :accept => true
           end
         end
-        it 'should not save the child if Child#save is called and the parent has errors' do
-          pending
+        it 'should save the child but not the parent if Child#save is called and the parent has errors' do
           Child.class_eval do
             include OneToOne
             belongs_to(:parent)
           end
           child = Child.new
-          child.parent = Parent.new{|parent| parent.must_be_true = false}
-          child.parent.must_be_true.should == false
+          parent = child.parent = Parent.new
           child.save
-          child.should be_new_record
-          child.errors.should_not be_empty
-          child.errors.on('parent').grep(/has errors/).should_not be_empty
+          child.should_not be_new_record
+          
+          parent.must_be_true = false
+          
+          child.name = 'David'
+          child.should be_valid    
+          child.save
+          Child.first(1).name.should == 'David'
+          Parent.first(1).must_be_true.should == true      
         end
-        it 'should not save the child if Child#save! is called and the parent has errors' do
-          pending
-          Child.class_eval do
-            include OneToOne
-            belongs_to(:parent)
-          end
-          child = Child.new
-          child.parent = Parent.new{|parent| parent.must_be_true = false}
-          child.save!
-          child.should be_new_record
-          child.errors.should_not be_empty
-          child.errors.on('parent').grep(/has errors/).should_not be_empty
-        end
-        it 'should not save the child if Child#create is called and the parent has errors' do
-          pending
-          Child.class_eval do
-            include OneToOne
-            belongs_to(:parent)
-          end
-          child = Child.create(:parent => Parent.new{|parent| parent.must_be_true = false})
-          child.should be_new_record
-          child.errors.should_not be_empty
-          child.errors.on('parent').grep(/has errors/).should_not be_empty
-        end
-        it 'should not save the child if Child#create! is called and the parent has errors' do
-          pending
-          Child.class_eval do
-            include OneToOne
-            belongs_to(:parent)
-          end
-          child = Child.create!(:parent => Parent.new{|parent| parent.must_be_true = false})
-          child.should be_new_record
-          child.errors.should_not be_empty
-          child.errors.on('parent').grep(/has errors/).should_not be_empty
-        end
-      end
-      
+      end      
     end
     
     
@@ -383,13 +369,6 @@ describe OneToOne do
         end
       end
     end
-  end
-  
-  context 'when included in the parent class' do
-    it 'should allow an instance of the child class to be associated' do
-      pending
-    end
-  
   end
   
 end
