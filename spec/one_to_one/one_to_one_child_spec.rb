@@ -17,6 +17,8 @@ describe OneToOne do
           def belongs_to(parent_class)
             @original_called = true
           end
+          def has_one(child_class)          
+          end
           def set_table_name(table_name)
           end
           def method_missing(method, *args, &block)
@@ -94,6 +96,32 @@ describe OneToOne do
           CreateParents.migrate(:down)
           CreateParents.migrate(:up)
         end
+        
+        it 'should have the same attributes before and after creation' do
+          Child.class_eval do
+            include OneToOne
+            belongs_to(:parent)
+          end
+          child = Child.new
+          child.parent = Parent.new
+          child.save
+          attributes = child.attributes
+          attributes.delete('parent_id')
+          
+          Child.find(1).attributes.should == attributes
+        end
+        it 'should not have a parent_id attribute after creation' do
+          pending
+          Child.class_eval do
+            include OneToOne
+            belongs_to(:parent)
+          end
+          child = Child.new
+          child.parent = Parent.new
+          child.save
+          child.attributes['parent_id'].should == nil
+        end
+        
         it 'should not validate a Child instance without an associated Parent instance' do
           Child.class_eval do
             include OneToOne
@@ -319,6 +347,16 @@ describe OneToOne do
           Child.find(1).name.should == 'David'
         end
         it 'should not allow the parent attributes to be updated' do
+          Child.class_eval do
+            include OneToOne
+            belongs_to(:parent)
+          end
+          child = Child.create(:parent => Parent.new)
+          child.update_attributes({:parent_name => 'David'})
+          child.parent.parent_name.should be_nil
+        end
+        it 'should raise an error if the parent attributes are updated' do
+          pending
           Child.class_eval do
             include OneToOne
             belongs_to(:parent)

@@ -11,13 +11,17 @@ module OneToOne
           validates_presence_of @parent_class_name.downcase
           validate :parent_not_changed, :on => :update
           
-          # Prevents the child instance from being created without a parent instance     
+          # Prevents the child instance from being created without a parent instance.
+          # Reloads the object to avoid having the attributes hash pick up the extra columns 
+          # when the child is saved for the first time.             
           def create
             if self.parent.valid?
               self.parent.save!
               self.id = self.parent.id
               self.instance_variable_set(:@new_record, false)
-              self.save
+              ret = self.save
+              self.reload
+              return ret
             else
               self.errors.add(self.class.parent_class_name.downcase, 'has errors')
             end
@@ -35,7 +39,7 @@ module OneToOne
             def columns
               unless defined?(@columns) && @columns
                 @columns = connection.columns(table_name, "#{name} Columns").select do |column| 
-                  column.name =~ Regexp.new("^child__") || column.name == primary_key
+                  column.name =~ Regexp.new("^#{self.to_s.downcase}__") || column.name == primary_key
                 end
                 @columns.each { |column| column.primary = column.name == primary_key }
               end

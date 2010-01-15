@@ -21,6 +21,10 @@ describe OneToOne do
       
       parent.child.should == child
     end
+    it 'should not have attributes for the child' do
+      parent = Parent.new
+      parent.attribute_names.grep(/child__/).should == []
+    end
     
     context 'and the parent instance is being created' do
       before(:each) do
@@ -56,7 +60,73 @@ describe OneToOne do
         Parent.find(1).should == parent
         Child.find(1).should == child
       end
+      it 'should have the same attributes before and after saving' do
+        parent = Parent.new
+        child = parent.child = Child.new
+        
+        parent.save
+        Parent.find(1).attributes.should == parent.attributes
+      end    
+    end
     
+    context 'and the parent instance is being updated' do
+      before(:each) do
+        CreateParents.migrate(:down)
+        CreateParents.migrate(:up)
+      end
+      
+      it 'should allow the parent attributes to be updated individually' do
+        parent = Parent.new
+        child = parent.child = Child.new
+        
+        parent.save
+        parent.should_not be_new_record
+        parent.parent_name = 'Kahn'
+        parent.save
+        parent.reload
+        parent.parent_name.should == 'Kahn'
+      end
+      it 'should allow the parent attributes to be updated en masse' do
+        parent = Parent.new
+        child = parent.child = Child.new
+        
+        parent.save
+        parent.should_not be_new_record
+        parent.update_attributes(:parent_name => 'Kahn')
+        parent.reload
+        parent.parent_name.should == 'Kahn'
+      end
+      it 'should not allow the child attributes to be updated individually' do
+        parent = Parent.new
+        child = parent.child = Child.new
+        
+        parent.save
+        parent.should_not be_new_record
+        parent.child__name = 'David'
+        parent.save
+        child.reload.name.should be_nil
+      end
+      it 'should raise an error if the child attributes are updated individually' do
+        parent = Parent.new
+        child = parent.child = Child.new
+        
+        parent.save
+        parent.should_not be_new_record
+        lambda do
+          parent.child__name = 'David'
+          parent.save
+        end.should raise_error(NoMethodError)
+        child.reload.name.should be_nil
+      end
+      it 'should allow the child attributes to be updated en masse' do
+        parent = Parent.new
+        child = parent.child = Child.new
+        
+        parent.save
+        parent.should_not be_new_record
+        parent.update_attributes(:child__name => 'David')
+        child.reload.name.should be_nil
+      end
     end
   
   end

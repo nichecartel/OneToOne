@@ -1,4 +1,5 @@
 require 'one_to_one/child'
+require 'one_to_one/parent'
 
 module OneToOne
   def self.included(base)
@@ -8,6 +9,8 @@ module OneToOne
       class << self
         alias_method(:original_belongs_to, :belongs_to)
         private :original_belongs_to
+        alias_method(:original_has_one, :has_one)
+        private :original_has_one
         
         attr_accessor :parent_class_name
         
@@ -17,6 +20,12 @@ module OneToOne
           
           include OneToOne::Child
           set_child_methods(parent)
+        end
+        
+        #hook for setting up Parent methods
+        def has_one(child)          
+          include OneToOne::Parent
+          set_parent_methods(child)
         end
         
       end
