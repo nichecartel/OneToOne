@@ -1,6 +1,8 @@
 $LOAD_PATH << File.join(File.dirname(__FILE__),"..","..","lib")
 
 require 'activerecord'
+require 'one_to_one'
+
 ActiveRecord::Base.establish_connection(
   :adapter => 'sqlite3' ,
   :database => File.join(File.dirname(__FILE__),'one_to_one.sqlite3')

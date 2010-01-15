@@ -71,9 +71,10 @@ describe OneToOne do
       Child.class_eval do
         include OneToOne
         belongs_to(:parent)
-        belongs_to(:a_different_class)
+        lambda do 
+          belongs_to(:a_different_class).should raise_error(NoMethodError, 'Child already has a parent class named Parent') 
+        end
       end
-#      .should 
     end
   end
   
