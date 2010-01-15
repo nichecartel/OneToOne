@@ -1,5 +1,6 @@
 Given /^a parent model class and instance$/ do
   CreateParents.migrate(:up)
+  at_exit { CreateParents.migrate(:down) }
   Parent = Class.new(ActiveRecord::Base) do
     has_one :child
   end
@@ -8,7 +9,7 @@ end
 
 Given /^a child model class and instance$/ do
   Child = Class.new(ActiveRecord::Base) do
-    belongs :parent
+    belongs_to :parent
   end
   @child = Child.new
   @parent.child = @child
