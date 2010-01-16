@@ -2,13 +2,14 @@ Have you ever struggled with whether to create a 1 to 1 relationship between two
 
 Consider an example: People and Genomes. Each Person has their own unique Genome, which no one else shares (even identical twins have base pair mutations relative to one another). So you could put all the data in the People table. Yet it feels wierd to lump methods like 'contains_dna_repeat_sequence?(x)' in with the Person class.
 
-In database land, 1 to 1 relationship are suspect. They indicate the potential for normalizing the data by combining the columns into one table, and thus avoiding frequent joins.
+In database land, 1 to 1 relationships are suspect. They indicate the potential for normalizing the data by combining the columns into one table, and thus avoiding frequent joins.
 In object oriented land, 1 to 1 relationship are a natural way to separate concerns.
 
-This plugin gives you the best of both worlds. It allows you to add the attributes of both classes into one database table, and then use the classes like a normal 1 to 1 relationship.
+This plugin gives you the best of both worlds. It allows you to add the attributes of both classes into one database table and avoid frequent joins while using the classes like a normal 1 to 1 relationship.
 
 ### Usage
-In a Rails app, simply install this plugin in vendor/plugins, and then 'include OneToOne' in the parent and child models you'd like to lump into one table. Rename the child model's fields by prefixing them with the name of the child class (ex: class FooBar => 'foo_bar') and place them in the parent classes migration. Run the migration and you're good to go.
+In a Rails app, simply install this plugin in vendor/plugins, and then 'include OneToOne' in the parent and child models you'd like to lump into one table. 
+Rename the child model's fields by prefixing them with the name of the child class and two underscores (ex: the 'sequence' fields in Genome becomes 'genome__sequence'). Place them in the parent class's migration. Run the migration and you're good to go.
 
 To play around with the plugin:
 
