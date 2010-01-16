@@ -9,10 +9,9 @@ module OneToOne
       class << self
         alias_method(:original_belongs_to, :belongs_to)
         private :original_belongs_to
-        alias_method(:original_has_one, :has_one)
-        private :original_has_one
+#        alias_method(:original_has_one, :has_one)
+#        private :original_has_one
         
-        attr_accessor :parent_class_name
         
         #hook for setting up Child methods
         def belongs_to(parent)

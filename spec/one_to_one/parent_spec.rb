@@ -38,6 +38,7 @@ describe OneToOne do
         
         parent.save
         Parent.find(1).should == parent
+        child.save
         Child.find(1).should == child
       end
       it 'should allow a child to be saved after a parent with it\'s attributes' do
@@ -104,9 +105,11 @@ describe OneToOne do
         parent.should_not be_new_record
         parent.child__name = 'David'
         parent.save
-        child.reload.name.should be_nil
+        child.should be_new_record
+        parent.child.name.should be_nil
       end
       it 'should raise an error if the child attributes are updated individually' do
+        pending
         parent = Parent.new
         child = parent.child = Child.new
         
@@ -116,16 +119,38 @@ describe OneToOne do
           parent.child__name = 'David'
           parent.save
         end.should raise_error(NoMethodError)
-        child.reload.name.should be_nil
+        parent.child.name.should be_nil
       end
-      it 'should allow the child attributes to be updated en masse' do
+      it 'should not allow the child attributes to be updated en masse' do
         parent = Parent.new
         child = parent.child = Child.new
         
         parent.save
         parent.should_not be_new_record
         parent.update_attributes(:child__name => 'David')
-        child.reload.name.should be_nil
+        child.should be_new_record
+        parent.child.name.should be_nil
+      end
+      
+      it 'should not allow the child to be set after creation' do
+        parent = Parent.new
+        parent.save
+        child = parent.child = Child.new(:name => 'David')
+        parent.save
+        parent.child.name.should == 'David'
+      end
+      it 'should not allow the child to be replaced' do
+        parent = Parent.new
+        child = parent.child = Child.new(:name => 'David')
+        child.name.should == 'David'
+        
+        parent.save!
+        child.should be_new_record
+        child = parent.child = Child.new(:name => 'Steve')
+        parent.save!
+        child.save!
+        parent.child.name.should == 'Steve'
+        parent.id.should == child.id
       end
     end
   
