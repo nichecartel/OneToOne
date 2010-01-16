@@ -79,6 +79,9 @@ describe OneToOne do
       child = Child.new({:name => 'David'})
       child.attributes['child__name'].should == 'David'
     end
+    it 'should allow you to access timestamp attributes from the child instance' do
+      pending
+    end
     
     it 'should display the Child class nicely with the aliased attributes' do
       pending
@@ -152,7 +155,7 @@ describe OneToOne do
         end
         
         it "should save the child's attributes in the parents table if Child#save is called" do
-          child = Child.new(:child__name => 'David')
+          child = Child.new(:name => 'David')
           child.parent = Parent.new
           child.save
           Child.find(1).name.should == 'David'

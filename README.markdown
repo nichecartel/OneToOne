@@ -9,7 +9,7 @@ This plugin gives you the best of both worlds. It allows you to add the attribut
 
 ### Usage
 
-    #from one_to_one/lib
+    #open up irb while in one_to_one/lib
     require 'rubygems'
     require 'activerecord'
     require 'one_to_one'
@@ -22,15 +22,17 @@ This plugin gives you the best of both worlds. It allows you to add the attribut
     class CreatePeople < ActiveRecord::Migration
       def self.up
         create_table :people do |t|
+        
+        #People attributes
           t.string :first_name
           t.string :last_name
           t.integer :age
           
+        #Genome attributes
           t.string :genome__sequence
           t.boolean :genome__complete
           t.integer :genome__intron_count
-
-          t.timestamps
+          
         end
       end
       def self.down
@@ -52,17 +54,20 @@ This plugin gives you the best of both worlds. It allows you to add the attribut
 
     p = Person.new(:first_name => 'Stanley', :last_name => 'Drew', :age => 25)
     #=> #<Person id: nil, first_name: "Stanley", last_name: "Drew", age: 25, created_at: nil, updated_at: nil>
-    g = Genome.new(:sequence => 'GATACA', :complete => false, :intron_count => 200)
-    #=> #<Genome id: nil, genome__sequence: "GATACA", genome__complete: false, genome__intron_count: 200>
+    g = Genome.new(:sequence => 'GATACA', :complete => true, :intron_count => 200)
+    #=> #<Genome id: nil, genome__sequence: "GATACA", genome__complete: true, genome__intron_count: 200>
     p.genome = g
     #=> #<Genome id: nil, genome__sequence: "GATACA", genome__complete: false, genome__intron_count: 200>
     g.save
     #=> true
     p
-    #=> #<Person id: 1, first_name: "Stanley", last_name: "Drew", age: 25, created_at: "2010-01-15 18:40:20", updated_at: "2010-01-15 18:40:20">
+    #=> #<Person id: 1, first_name: "Stanley", last_name: "Drew", age: 25>
     g
     #=> #<Genome id: 1, genome__sequence: "GATACA", genome__complete: false, genome__intron_count: 200>
-
+    g.complete = false
+    #=> false
+    g.intron_count
+    #=> 200
 
     #Look Ma, No JOIN
     Genome.find(:first, :conditions => ["first_name = ? AND age > ? AND genome__intron_count = ? ", 'Stanley', 20, 200])
