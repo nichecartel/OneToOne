@@ -132,25 +132,42 @@ describe OneToOne do
         parent.child.name.should be_nil
       end
       
-      it 'should not allow the child to be set after creation' do
+      it 'should allow the child to be set after creation' do
         parent = Parent.new
         parent.save
         child = parent.child = Child.new(:name => 'David')
         parent.save
         parent.child.name.should == 'David'
       end
-      it 'should not allow the child to be replaced' do
+      it 'should allow the child to be replaced' do
         parent = Parent.new
         child = parent.child = Child.new(:name => 'David')
-        child.name.should == 'David'
-        
+        child.name.should == 'David'        
         parent.save!
-        child.should be_new_record
+        parent.child.name.should == 'David'
+        
         child = parent.child = Child.new(:name => 'Steve')
         parent.save!
-        child.save!
         parent.child.name.should == 'Steve'
-        parent.id.should == child.id
+        
+        child = parent.child = Child.new(:name => 'Lee')
+        child.save!
+        parent.child.name.should == 'Lee'
+      end
+      it 'should allow the child to be replaced and wipe out the attributes which are nil for the new child' do
+        parent = Parent.new
+        child = parent.child = Child.new(:name => 'David', :must_be_true => false)
+        child.name.should == 'David'        
+        parent.save!
+        parent.child.name.should == 'David'
+        
+        child = parent.child = Child.new(:name => 'Steve')
+        parent.save!
+        parent.child.must_be_true.should == true
+        
+        child = parent.child = Child.new()
+        child.save!
+        parent.child.name.should == nil
       end
     end
   

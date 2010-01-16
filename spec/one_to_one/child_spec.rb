@@ -50,6 +50,15 @@ describe OneToOne do
       lambda do
         Child.new
       end.should_not raise_error(ActiveRecord::StatementInvalid, "Could not find table 'children'")
+    end   
+    it 'should raise an error if another belongs_to association is declared' do
+      Child.class_eval do
+        include OneToOne
+        belongs_to(:parent)
+        lambda do 
+          belongs_to(:a_different_class).should raise_error(NoMethodError, 'Child already has a parent class named Parent') 
+        end
+      end
     end
     
     it "should alias attributes for the child instance which begin with 'child__'" do
@@ -325,16 +334,36 @@ describe OneToOne do
       end      
     end
     
-    
-    it 'should raise an error if another belongs_to association is declared' do
-      Child.class_eval do
-        include OneToOne
-        belongs_to(:parent)
-        lambda do 
-          belongs_to(:a_different_class).should raise_error(NoMethodError, 'Child already has a parent class named Parent') 
+    context 'when searching for a child' do
+      before(:each) do
+        CreateParents.migrate(:down)
+        CreateParents.migrate(:up)
+        Child.class_eval do
+          include OneToOne
+          belongs_to(:parent)
+        end
+        ['D', 'A', 'V'].each do |name|
+          p = Parent.new(:parent_name => name.downcase)
+          c = Child.new(:name => name, :parent => p)
+          c.save 
         end
       end
+      it 'should enable you to use dynamic finder methods with the shorter attribute names' do
+        pending
+        Child.find_by_name('D').id.should == 1
+      end
+      it 'should allow you to use the id' do
+        Child.find(1).name.should == 'D'
+      end
+      it 'should allow you to use all the columns for search' do
+        Child.find(:first, :conditions => {:child__name => 'D', :parent_name => 'd'}).name.should == 'D'
+        Child.find(:first, :conditions => ["child__name = ? AND parent_name = ?", 'D', 'd']).name.should == 'D'
+      end
+      it 'should allow you to use the shortened child column names for search' do
+        pending
+        Child.find(:first, :conditions => {:name => 'D', :parent_name => 'd'}).name.should == 'D'
+        Child.find(:first, :conditions => ["name = ? AND parent_name = ?", 'D', 'd']).name.should == 'D'
+      end
     end
-  end
-  
+  end  
 end
