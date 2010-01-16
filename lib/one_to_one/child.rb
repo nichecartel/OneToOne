@@ -30,7 +30,8 @@ module OneToOne
       
           private
           def parent_not_changed
-            unless (self.send(self.class.parent_association_name).id == self.id) or self.id.nil?
+            parent = self.send(self.class.parent_association_name)
+            unless !parent or (parent.id == self.id or self.id.nil?)
               self.errors.add(self.class.parent_association_name, 'cannot be changed to another') 
             end
           end

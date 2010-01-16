@@ -122,7 +122,13 @@ describe OneToOne do
           child = Child.new
           child.valid?
           child.errors.should_not be_empty
-          child.errors.on('parent').grep(/can't be blank/).should_not be_empty
+          child.errors.on('parent').should =~ /can't be blank/
+        end
+        it 'should not save a Child instance without an associated Parent instance' do
+          child = Child.new
+          child.save
+          child.errors.should_not be_empty
+          child.errors.on('parent').should =~ /can't be blank/
         end
         it 'should validate a Child instance with an associated Parent instance' do
           child = Child.new
