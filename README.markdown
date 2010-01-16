@@ -8,6 +8,9 @@ In object oriented land, 1 to 1 relationship are a natural way to separate conce
 This plugin gives you the best of both worlds. It allows you to add the attributes of both classes into one database table, and then use the classes like a normal 1 to 1 relationship.
 
 ### Usage
+In a Rails app, simply install this plugin in vendor/plugins, and then 'include OneToOne' in the parent and child models you'd like to lump into one table. Rename the child model's fields by prefixing them with the name of the child class (ex: class FooBar => 'foo_bar') and place them in the parent classes migration. Run the migration and you're good to go.
+
+To play around with the plugin:
 
     #open up irb while in one_to_one/lib
     require 'rubygems'
